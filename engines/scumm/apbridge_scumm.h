@@ -84,6 +84,7 @@ public:
 	void getContext(Common::HashMap<Common::String, int32> &ctx) override;
 	bool performAction(const Common::String &op, const APBridge::Keys &keys, const APBridge::Args &args,
 	                   int32 &result, Common::String &error) override;
+	bool canInterrupt() override;
 
 	void tick();
 

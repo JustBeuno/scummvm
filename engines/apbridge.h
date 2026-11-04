@@ -82,6 +82,11 @@ public:
 	 */
 	virtual bool performAction(const Common::String &op, const Keys &keys, const Args &args,
 	                           int32 &result, Common::String &error) = 0;
+	/**
+	 * True when the player is in control and nothing scripted is running, so
+	 * that a player-chosen action such as travel cannot break a scene.
+	 */
+	virtual bool canInterrupt() { return true; }
 };
 
 class Bridge {
@@ -135,6 +140,15 @@ public:
 	 */
 	GUI::Dialog *createHelpDialog(bool withGameHelp);
 
+	/**
+	 * Create the travel menu: the destinations the client provides. Returns
+	 * nullptr and sets @p reason when it cannot open now. The dialog's result
+	 * is the chosen entry plus one, or 0; pass it to travelChosen().
+	 */
+	GUI::Dialog *createTravelDialog(Common::String &reason);
+	/** Report the travel menu's result to the client. */
+	void travelChosen(int result);
+
 	/** True while the bridge executes a client action (hooks must not veto). */
 	bool inAction() const { return _inAction; }
 
@@ -151,6 +165,12 @@ private:
 		bool veto;
 		int32 value;
 		bool once;
+	};
+
+	struct TravelOption {
+		int32 id;
+		Common::String text;
+		bool enabled;
 	};
 
 	bool matches(const Rule &rule, const char *kind, const Keys &keys, const Args &args,
@@ -177,6 +197,8 @@ private:
 	Common::HashMap<Common::String, bool> _tracedKinds;
 	Common::Array<Common::String> _outQueue; ///< events raised before connect
 	Common::String _helpText;
+	Common::String _travelTitle;
+	Common::Array<TravelOption> _travelOptions;
 };
 
 } // End of namespace APBridge

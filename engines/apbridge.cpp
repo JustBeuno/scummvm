@@ -35,7 +35,9 @@
 
 #include "gui/dialog.h"
 #include "gui/gui-manager.h"
+#include "gui/ThemeEngine.h"
 #include "gui/widget.h"
+#include "gui/widgets/list.h"
 #include "gui/widgets/richtext.h"
 #endif
 
@@ -100,6 +102,8 @@ void Bridge::attach(Adapter *adapter, const Common::String &gameId, const Common
 	_extra = extra;
 	_rules.clear();
 	rebuildKindIndex();
+	_travelTitle.clear();
+	_travelOptions.clear();
 	if (_connected)
 		sendHello();
 	else
@@ -410,6 +414,23 @@ void Bridge::handleLine(const Common::String &line) {
 		}
 	} else if (cmd == "help") {
 		_helpText = o.contains("text") && o["text"]->isString() ? o["text"]->asString() : "";
+	} else if (cmd == "travel") {
+		_travelTitle = o.contains("title") && o["title"]->isString() ? o["title"]->asString() : "";
+		_travelOptions.clear();
+		if (o.contains("options") && o["options"]->isArray()) {
+			const Common::JSONArray &list = o["options"]->asArray();
+			for (uint i = 0; i < list.size(); i++) {
+				if (!list[i]->isObject())
+					continue;
+				const Common::JSONObject &e = list[i]->asObject();
+				TravelOption opt;
+				opt.id = jsonToInt(e.contains("id") ? e["id"] : nullptr, (int32)i);
+				opt.text = e.contains("text") && e["text"]->isString() ? e["text"]->asString() : "";
+				opt.enabled = !e.contains("enabled") || jsonToInt(e["enabled"], 1) != 0;
+				if (!opt.text.empty())
+					_travelOptions.push_back(opt);
+			}
+		}
 	} else if (cmd == "ping") {
 		// just reply
 	} else {
@@ -478,10 +499,131 @@ public:
 	}
 };
 
+class TravelDialog : public GUI::Dialog {
+public:
+	enum {
+		kTravelCmd = 'APTV',
+		kCancelCmd = 'APCN'
+	};
+
+	TravelDialog(const Common::String &title, const Common::Array<bool> &enabled, const Common::U32StringArray &entries)
+		: GUI::Dialog(0, 0, 10, 10, true), _enabled(enabled) {
+		const int guiW = g_gui.getGUIWidth(), guiH = g_gui.getGUIHeight();
+		const bool lowres = guiW <= 320;
+		const int pad = lowres ? 4 : 10;
+		const int buttonW = lowres ? 72 : 110, buttonH = lowres ? 16 : 22;
+		const int lineH = g_gui.getFontHeight() + 2;
+		const int titleH = g_gui.getFontHeight() + 4;
+		const int w = MIN(guiW - 2 * pad, 360);
+		const int listH = MIN((int)entries.size() * lineH + 8, guiH - 4 * pad - titleH - buttonH);
+		const int h = titleH + listH + buttonH + 4 * pad;
+		const float sf = g_gui.getScaleFactor();
+		_x = (int16)(((guiW - w) / 2) * sf);
+		_y = (int16)(((guiH - h) / 2) * sf);
+		_w = (uint16)(w * sf);
+		_h = (uint16)(h * sf);
+
+		new GUI::StaticTextWidget(this, pad, pad, w - 2 * pad, titleH, true,
+		                          Common::U32String(title.empty() ? "Archipelago Travel" : title, Common::kUtf8),
+		                          Graphics::kTextAlignCenter);
+		_list = new GUI::ListWidget(this, pad, 2 * pad + titleH, w - 2 * pad, listH, true);
+		_list->setNumberingMode(GUI::kListNumberingOff);
+		_list->setEditable(false);
+		_list->setList(entries);
+
+		const int by = h - pad - buttonH;
+		_travel = new GUI::ButtonWidget(this, w - 2 * (pad + buttonW), by, buttonW, buttonH, true,
+		                                Common::U32String("Travel"), Common::U32String(), kTravelCmd, Common::ASCII_RETURN);
+		new GUI::ButtonWidget(this, w - pad - buttonW, by, buttonW, buttonH, true,
+		                      Common::U32String("Cancel"), Common::U32String(), kCancelCmd, Common::ASCII_ESCAPE);
+		updateButton();
+	}
+
+	void handleCommand(GUI::CommandSender *sender, uint32 cmd, uint32 data) override {
+		switch (cmd) {
+		case GUI::kListSelectionChangedCmd:
+			updateButton();
+			break;
+		case GUI::kListItemActivatedCmd:
+		case GUI::kListItemDoubleClickedCmd:
+		case kTravelCmd:
+			if (selectedEnabled()) {
+				setResult(_list->getSelected() + 1);
+				close();
+			}
+			break;
+		case kCancelCmd:
+			setResult(0);
+			close();
+			break;
+		default:
+			GUI::Dialog::handleCommand(sender, cmd, data);
+		}
+	}
+
+private:
+	bool selectedEnabled() const {
+		int sel = _list->getSelected();
+		return sel >= 0 && sel < (int)_enabled.size() && _enabled[sel];
+	}
+
+	void updateButton() {
+		_travel->setEnabled(selectedEnabled());
+		_travel->markAsDirty();
+	}
+
+	Common::Array<bool> _enabled;
+	GUI::ListWidget *_list;
+	GUI::ButtonWidget *_travel;
+};
+
 } // End of anonymous namespace
 
 GUI::Dialog *Bridge::createHelpDialog(bool withGameHelp) {
 	return new HelpDialog(_helpText, withGameHelp);
+}
+
+GUI::Dialog *Bridge::createTravelDialog(Common::String &reason) {
+	if (!_connected || !_adapter) {
+		reason = "Travel: the Archipelago client is not connected";
+		return nullptr;
+	}
+	if (_travelOptions.empty()) {
+		reason = "No travel destinations are available";
+		return nullptr;
+	}
+	if (!_adapter->canInterrupt()) {
+		reason = "You can't travel right now";
+		return nullptr;
+	}
+	Common::Array<bool> enabled;
+	Common::U32StringArray entries;
+	for (uint i = 0; i < _travelOptions.size(); i++) {
+		const TravelOption &opt = _travelOptions[i];
+		enabled.push_back(opt.enabled);
+		Common::U32String text(opt.text, Common::kUtf8);
+		if (!opt.enabled)
+			text = GUI::ListWidget::getThemeColor(GUI::ThemeEngine::kFontColorAlternate) + text + Common::U32String(" (locked)");
+		entries.push_back(text);
+	}
+	return new TravelDialog(_travelTitle, enabled, entries);
+}
+
+void Bridge::travelChosen(int result) {
+	if (result <= 0 || result > (int)_travelOptions.size())
+		return;
+	Common::HashMap<Common::String, int32> ctx;
+	if (_adapter)
+		_adapter->getContext(ctx);
+	Common::JSONObject o;
+	o["type"] = new Common::JSONValue("travel");
+	o["id"] = new Common::JSONValue((long long int)_travelOptions[result - 1].id);
+	Common::JSONObject c;
+	for (Common::HashMap<Common::String, int32>::const_iterator it = ctx.begin(); it != ctx.end(); ++it)
+		c[it->_key] = new Common::JSONValue((long long int)it->_value);
+	o["ctx"] = new Common::JSONValue(c);
+	Common::JSONValue v(o);
+	send(v.stringify());
 }
 
 } // End of namespace APBridge

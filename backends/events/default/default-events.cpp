@@ -38,6 +38,8 @@
 
 // Custom backend action of the "Archipelago help" key ('APHP').
 static const Common::CustomEventType kArchipelagoHelpAction = 0x41504850;
+// Custom backend action of the "Archipelago travel" key ('APTR').
+static const Common::CustomEventType kArchipelagoTravelAction = 0x41505452;
 
 DefaultEventManager::DefaultEventManager(Common::EventSource *boss) :
 	_buttonState(0),
@@ -181,6 +183,8 @@ bool DefaultEventManager::pollEvent(Common::Event &event) {
 	case Common::EVENT_CUSTOM_BACKEND_ACTION_START:
 		if (event.customType == kArchipelagoHelpAction && g_engine && !g_engine->isPaused())
 			g_engine->openArchipelagoHelpDialog();
+		else if (event.customType == kArchipelagoTravelAction && g_engine && !g_engine->isPaused())
+			g_engine->openArchipelagoTravelDialog();
 		break;
 
 	case Common::EVENT_VIRTUAL_KEYBOARD:
@@ -382,6 +386,12 @@ Common::Keymap *DefaultEventManager::getGlobalKeymap() {
 	act = new Action("APHELP", _("Archipelago help"));
 	act->addDefaultInputMapping("C+F6");
 	act->setCustomBackendActionEvent(kArchipelagoHelpAction);
+	globalKeymap->addAction(act);
+
+	// Opens the Archipelago travel menu in games that use the Archipelago bridge.
+	act = new Action("APTRAVEL", _("Archipelago travel"));
+	act->addDefaultInputMapping("C+F8");
+	act->setCustomBackendActionEvent(kArchipelagoTravelAction);
 	globalKeymap->addAction(act);
 
 	act = new Action("MUTE", _("Toggle mute"));

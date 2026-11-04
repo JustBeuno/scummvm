@@ -33,6 +33,7 @@ Newline-delimited JSON, one object per line, both directions.
 | `match`  | `rule`, `kind`, `keys`, `args`, `ctx`, `action` | An event matched a `watch` rule. Queued while disconnected. |
 | `trace`  | `kind`, `keys`, `args`, `ctx`, `action` | Every event of a traced kind (for mapping a new game). |
 | `result` | `cmd`, `req`, `ok`, `value`, `error` | Reply to each command. |
+| `travel` | `id`, `ctx` | The player chose a destination in the travel menu. |
 | `bye`    | | The game is shutting down. |
 
 `action` is true when the event was caused by the client's own `do` command.
@@ -48,6 +49,7 @@ Newline-delimited JSON, one object per line, both directions.
 | `do`      | `req`, `op`, `keys`, `args`, `asGame` | Run an engine action (below) at the next safe point. With `asGame: true` the action counts as the player's own (rules can veto what it causes), for test harnesses. |
 | `say`     | `text` | Show an on-screen message. |
 | `help`    | `text` | Set the Archipelago Help page (Markdown). Send it again whenever it changes. |
+| `travel`  | `title`, `options` | Set the travel menu: `options` is a list of `{id, text, enabled}` (`enabled` defaults to true). Send it again whenever it changes; an empty list turns travel off. |
 | `ping`    | `req` | Liveness check. |
 
 Rules survive client disconnects, so suppressed pickups stay suppressed; they
@@ -65,6 +67,24 @@ Keymaps, Global) opens the page too. The page shows the text of the last
 `help` message, rendered as Markdown, or a "waiting for the client" note.
 ScummVM's Markdown renderer drops the first letter of a plain paragraph that
 follows a list, so start such a block with a heading or a list item.
+
+### Travel menu
+
+The global keymap action "Archipelago travel" (Ctrl+F8 by default) opens a
+list of the destinations from the last `travel` message. Entries sent with
+`enabled: false` are shown greyed out as "(locked)" and cannot be chosen.
+The menu only opens while the player is in control (SCUMM: no message on
+screen, no cutscene, user input on; SCI: no game window open); otherwise, or
+when the client is not connected or has sent no destinations, a short
+on-screen message explains why. A choice is reported as a `travel` message
+with the option's `id`; ScummVM does nothing else. The client performs the
+trip itself (state changes, then `goto` or the engine's equivalent), and can
+refuse with `say` when a game-specific condition forbids it.
+
+```json
+{"cmd":"travel","title":"Travel","options":[{"id":1,"text":"Mêlée Island"},{"id":3,"text":"Monkey Island","enabled":false}]}
+{"type":"travel","id":1,"ctx":{"room":19,"ego":1,"mx":189,"my":118}}
+```
 
 ## SCI (Sierra SCI0–SCI1.1)
 

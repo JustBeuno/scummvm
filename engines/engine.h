@@ -665,6 +665,12 @@ public:
 	void openArchipelagoHelpDialog();
 
 	/**
+	 * Open the Archipelago travel menu (its hotkey), when the game uses the
+	 * Archipelago bridge and the client has sent destinations.
+	 */
+	void openArchipelagoTravelDialog();
+
+	/**
 	 * Display a warning to the user that the game is not fully supported.
 	 *
 	 * @param msg  A message that will be presented to user. If empty, then

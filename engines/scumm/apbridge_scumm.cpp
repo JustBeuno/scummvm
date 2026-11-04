@@ -45,6 +45,10 @@ static Common::String num(int n) {
 	return Common::String::format("%d", n);
 }
 
+bool ScummBridgeAdapter::canInterrupt() {
+	return !_vm->_haveMsg && _vm->vm.cutSceneStackPointer == 0 && _vm->_userPut > 0;
+}
+
 void ScummBridgeAdapter::getContext(Common::HashMap<Common::String, int32> &ctx) {
 	ctx["room"] = _vm->_currentRoom;
 	if (_vm->VAR_EGO != 0xFF)

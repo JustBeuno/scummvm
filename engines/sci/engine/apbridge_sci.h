@@ -65,6 +65,7 @@ public:
 	void getContext(Common::HashMap<Common::String, int32> &ctx) override;
 	bool performAction(const Common::String &op, const APBridge::Keys &keys, const APBridge::Args &args,
 	                   int32 &result, Common::String &error) override;
+	bool canInterrupt() override;
 
 	/** Run queued client actions; call from inside a kernel call. */
 	void tick(int argc, reg_t *argv);

@@ -827,6 +827,21 @@ void Engine::openArchipelagoHelpDialog() {
 	delete dialog;
 }
 
+void Engine::openArchipelagoTravelDialog() {
+	APBridge::Bridge *bridge = APBridge::Bridge::instance();
+	if (!bridge)
+		return;
+	Common::String reason;
+	GUI::Dialog *dialog = bridge->createTravelDialog(reason);
+	if (!dialog) {
+		g_system->displayMessageOnOSD(Common::U32String(reason));
+		return;
+	}
+	int result = runDialog(*dialog);
+	delete dialog;
+	bridge->travelChosen(result);
+}
+
 void Engine::openMainMenuDialog() {
 	if (!_mainMenuDialog)
 		_mainMenuDialog = new MainMenuDialog(this);

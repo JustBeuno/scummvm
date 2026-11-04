@@ -114,6 +114,12 @@ void apBridgeKernel(EngineState *s, const char *name, int argc, const reg_t *arg
 
 // ---------------------------------------------------------------------------
 
+bool SciBridgeAdapter::canInterrupt() {
+	// Not while the game shows a window of its own (a message, a talker, a menu)
+	GfxPorts *ports = g_sci->_gfxPorts;
+	return !ports || !ports->_picWind || ports->isFrontWindow(ports->_picWind);
+}
+
 void SciBridgeAdapter::getContext(Common::HashMap<Common::String, int32> &ctx) {
 	if (_state && _state->variables[VAR_GLOBAL])
 		ctx["room"] = (int16)_state->variables[VAR_GLOBAL][kGlobalVarCurrentRoomNo].getOffset();
