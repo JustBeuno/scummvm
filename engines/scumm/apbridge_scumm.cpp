@@ -20,6 +20,7 @@
  */
 
 #include "scumm/apbridge_scumm.h"
+#include "scumm/verbs.h"
 #include "scumm/actor.h"
 #include "scumm/sound.h"
 #include "scumm/scumm.h"
@@ -46,7 +47,19 @@ static Common::String num(int n) {
 }
 
 bool ScummBridgeAdapter::canInterrupt() {
-	return !_vm->_haveMsg && _vm->vm.cutSceneStackPointer == 0 && _vm->_userPut > 0;
+	if (_vm->_haveMsg || _vm->vm.cutSceneStackPointer != 0 || _vm->_userPut <= 0)
+		return false;
+	// The player must be at the normal verb interface: conversations, close-ups
+	// and map screens replace the action verbs (low ids) with choices of their own.
+	// Games without verbs on screen (v7 and later) are not checked.
+	if (_vm->_game.version >= 7)
+		return true;
+	for (int i = 1; i < _vm->_numVerbs; i++) {
+		const VerbSlot &vs = _vm->_verbs[i];
+		if (vs.verbid >= 1 && vs.verbid <= 12 && vs.curmode == 1 && vs.saveid == 0)
+			return true;
+	}
+	return false;
 }
 
 void ScummBridgeAdapter::getContext(Common::HashMap<Common::String, int32> &ctx) {

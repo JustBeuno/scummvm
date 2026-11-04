@@ -36,6 +36,7 @@
 #include "gui/dialog.h"
 #include "gui/gui-manager.h"
 #include "gui/ThemeEngine.h"
+#include "gui/ThemeEval.h"
 #include "gui/widget.h"
 #include "gui/widgets/list.h"
 #include "gui/widgets/richtext.h"
@@ -512,12 +513,16 @@ public:
 		const bool lowres = guiW <= 320;
 		const int pad = lowres ? 4 : 10;
 		const int buttonW = lowres ? 72 : 110, buttonH = lowres ? 16 : 22;
-		const int lineH = g_gui.getFontHeight() + 2;
-		const int titleH = g_gui.getFontHeight() + 4;
-		const int w = MIN(guiW - 2 * pad, 360);
-		const int listH = MIN((int)entries.size() * lineH + 8, guiH - 4 * pad - titleH - buttonH);
-		const int h = titleH + listH + buttonH + 4 * pad;
 		const float sf = g_gui.getScaleFactor();
+		// Fonts and the list's theme spacing are in screen pixels, the layout here is unscaled
+		const int titleH = (int)((g_gui.getFontHeight() + 4) / sf + 0.99f);
+		const int rowPx = kLineHeight + g_gui.xmlEval()->getVar("Globals.ListWidget.itemSpacing", 0);
+		const int listPx = (int)entries.size() * rowPx
+		                   + g_gui.xmlEval()->getVar("Globals.ListWidget.Padding.Top", 0)
+		                   + g_gui.xmlEval()->getVar("Globals.ListWidget.Padding.Bottom", 0) + 4;
+		const int w = MIN(guiW - 2 * pad, 360);
+		const int listH = MIN((int)(listPx / sf + 0.99f), guiH - 4 * pad - titleH - buttonH);
+		const int h = titleH + listH + buttonH + 4 * pad;
 		_x = (int16)(((guiW - w) / 2) * sf);
 		_y = (int16)(((guiH - h) / 2) * sf);
 		_w = (uint16)(w * sf);

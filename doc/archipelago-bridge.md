@@ -74,7 +74,8 @@ The global keymap action "Archipelago travel" (Ctrl+F8 by default) opens a
 list of the destinations from the last `travel` message. Entries sent with
 `enabled: false` are shown greyed out as "(locked)" and cannot be chosen.
 The menu only opens while the player is in control (SCUMM: no message on
-screen, no cutscene, user input on; SCI: no game window open); otherwise, or
+screen, no cutscene, user input on and, up to v6, the action verbs showing,
+so not in a conversation, close-up or map screen; SCI: no game window open); otherwise, or
 when the client is not connected or has sent no destinations, a short
 on-screen message explains why. A choice is reported as a `travel` message
 with the option's `id`; ScummVM does nothing else. The client performs the
