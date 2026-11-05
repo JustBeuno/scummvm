@@ -274,7 +274,13 @@ bool ScummBridgeAdapter::performAction(const Common::String &op, const APBridge:
 		int obj = args.size() > 1 ? args[1] : 0;
 		int x = args.size() > 3 ? args[2] : -1;
 		int y = args.size() > 3 ? args[3] : -1;
-		if (room <= 0 || room >= _vm->_numRooms) {
+		// Before v7, rooms from 0x80 up are pseudo rooms: they run a real room's
+		// code through _resourceMapper (Monkey Island 2's jungle and tunnels are
+		// rooms 140-167), as startScene() does
+		int resource = room;
+		if (room >= 0x80 && _vm->_game.version < 7 && _vm->_game.heversion <= 71 && room < 0x100)
+			resource = _vm->_resourceMapper[room & 0x7F];
+		if (room <= 0 || resource <= 0 || resource >= _vm->_numRooms) {
 			error = "room out of range";
 			return false;
 		}
