@@ -633,6 +633,11 @@ int ScummEngine::readVar(uint var) {
 		}
 #endif
 		assertRange(0, var, _numVariables - 1, "variable (reading)");
+		if (_apBridge) {
+			int value = _scummVars[var];
+			_apBridge->onGetVar(var, value);
+			return value;
+		}
 		return _scummVars[var];
 	}
 

@@ -166,6 +166,7 @@ Events:
 | `getowner` | `[object, by, number]` | `[owner]` (vetoable; v5). A script asked who owns an object. `by` is `object` (number = the object whose verb script is running), `global`, `local`, `entry` or `exit` (number = room). |
 | `getclass` | `[object, class, by, number]` | `[has]` (vetoable; v5). A script tested whether an object has a class (bit 7 stripped); `by` and `number` as for `getowner`. |
 | `getbit` | `[bit, by, number]` | `[value]` (vetoable; v5 and later). A script read a bit variable; `by` and `number` as for `getowner`. Reads outside scripts (bridge actions) are not reported. |
+| `getvar` | `[variable, by, number]` | `[value]` (vetoable). A script read a variable; `by` and `number` as for `getowner`. Reads are frequent, so only variables a rule names as its first key (or a trace) are reported. |
 | `setclass` | `[object, class, by, number]` | `[set]` (vetoable; v5). A script set (1) or cleared (0) an object's class (bit 7 stripped); `by` and `number` as for `getowner`. A veto leaves the class as it was. |
 
 Context: `room`, `ego`, `mx`/`my` (the mouse in room coordinates, so a client can
@@ -174,7 +175,7 @@ room, 2 the verbs and inventory; an object picked up keeps its number in the inv
 so this tells a click on the room's object from one on its inventory copy), `under` (the
 room object under the mouse, 0 for none or when the mouse is off the room).
 
-A `getowner`, `getclass` or `getbit` veto replaces the answer the script gets with the rule's `value`.
+A `getowner`, `getclass`, `getbit` or `getvar` veto replaces the answer the script gets with the rule's `value`.
 
 Spots: in a randomizer the item the player receives and the place it is found
 are one game object, with one owner. When the player uses the item up (its

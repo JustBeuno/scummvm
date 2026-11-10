@@ -51,6 +51,9 @@ class Actor;
  *   getbit  keys [index, by, number]  args [value]            (vetoable)
  *           a script read a bit variable (v5 and later; reads outside scripts
  *           are not reported).
+ *   getvar  keys [index, by, number]  args [value]            (vetoable)
+ *           a script read a variable; only reported for variables a rule names
+ *           (or a trace), as reads are frequent.
  *   setclass keys [object, class, by, number]  args [set]     (vetoable)
  *           a script sets or clears an object's class (v5); a veto leaves it as it was.
  *   ctx: room, ego, mx/my (mouse in room coordinates)
@@ -106,6 +109,7 @@ public:
 	bool onGetClass(int obj, int cls, int &has);
 	/** A script reads bit variable @p bit; @p value may be answered. */
 	bool onGetBit(int bit, int &value);
+	bool onGetVar(int var, int &value);
 	/** A script sets (@p set) or clears class @p cls of @p obj; true when vetoed. */
 	bool onSetClass(int obj, int cls, bool set);
 	/**
