@@ -241,6 +241,23 @@ bool ScummBridgeAdapter::onGetClass(int obj, int cls, int &has) {
 	return v.veto;
 }
 
+bool ScummBridgeAdapter::onSetClass(int obj, int cls, bool set) {
+	APBridge::Bridge *b = bridge();
+	if (!b || _vm->_currentScript == 0xFF || !b->wants("setclass"))
+		return false;
+	const char *by;
+	int number;
+	scriptContext(by, number);
+	APBridge::Keys keys;
+	keys.push_back(num(obj));
+	keys.push_back(num(cls));
+	keys.push_back(by);
+	keys.push_back(num(number));
+	APBridge::Args args;
+	args.push_back(set ? 1 : 0);
+	return b->notify("setclass", keys, args).veto;
+}
+
 bool ScummBridgeAdapter::onGetBit(int bit, int &value) {
 	APBridge::Bridge *b = bridge();
 	if (!b || _vm->_currentScript == 0xFF || !b->wants("getbit"))
@@ -641,6 +658,45 @@ bool ScummBridgeAdapter::performAction(const Common::String &op, const APBridge:
 			_vm->putClass(obj, cls, (cls & 0x80) != 0);
 		}
 		result = 1;
+		return true;
+	}
+	if (op == "setName") {
+		// An object's new name (keys[0]), as a script's setObjectName does: what the
+		// sentence line and the inventory show from then on.
+		if (keys.empty() || keys[0].empty() || args.empty() || obj < 1 || obj >= _vm->_numGlobalObjects ||
+				_vm->objIsActor(obj)) {
+			error = "setName needs the name as its key and [object]";
+			return false;
+		}
+		int slot = -1;
+		for (int i = 0; i < _vm->_numNewNames && slot < 0; i++)
+			if (_vm->_newNames[i] == obj)
+				slot = i;
+		if (slot >= 0) {
+			_vm->_res->nukeResource(rtObjectName, slot);
+			_vm->_newNames[slot] = 0;
+		} else {
+			for (int i = 0; i < _vm->_numNewNames && slot < 0; i++)
+				if (_vm->_newNames[i] == 0)
+					slot = i;
+		}
+		if (slot < 0) {
+			error = "the name table is full";
+			return false;
+		}
+		_vm->loadPtrToResource(rtObjectName, slot, (const byte *)keys[0].c_str());
+		_vm->_newNames[slot] = obj;
+		_vm->runInventoryScript(0);
+		result = 1;
+		return true;
+	}
+	if (op == "getClass") {
+		// Whether object args[0] has class args[1] (1-32), the way the game's classOfIs sees it
+		if (args.size() < 2 || obj < 1 || obj >= _vm->_numGlobalObjects || args[1] < 1 || args[1] > 32) {
+			error = "getClass needs [object, class]";
+			return false;
+		}
+		result = _vm->getClass(obj, args[1]) ? 1 : 0;
 		return true;
 	}
 	if (op == "getOwner") {

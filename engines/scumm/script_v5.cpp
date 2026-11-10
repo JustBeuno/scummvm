@@ -684,7 +684,7 @@ void ScummEngine_v5::o5_setClass() {
 				a->_ignoreBoxes = false;
 				a->_forceClip = 0;
 			}
-		} else
+		} else if (!(_apBridge && _apBridge->onSetClass(obj, cls & 0x7F, (cls & 0x80) != 0)))
 			putClass(obj, cls, (cls & 0x80) ? true : false);
 	}
 }

@@ -42,15 +42,17 @@ class Actor;
  *   room    keys [room]    args []
  *   script  keys [number]  args []                                 (vetoable)
  *   getowner keys [object, by, number]  args [owner]               (vetoable)
- *   getclass keys [object, class, by, number]  args [has]     (vetoable)
- *   getbit  keys [index, by, number]  args [value]            (vetoable)
- *           a script read a bit variable (v5 and later; reads outside scripts
- *           are not reported).
  *           a script asked who owns an object (getObjectOwner). "by" names the
  *           asking script: object (number = object id), global, local, entry
  *           or exit (number = room). A veto replaces the answer with the
  *           rule's value; the real owner is unchanged, so the inventory and
  *           every other script still see the truth.
+ *   getclass keys [object, class, by, number]  args [has]     (vetoable)
+ *   getbit  keys [index, by, number]  args [value]            (vetoable)
+ *           a script read a bit variable (v5 and later; reads outside scripts
+ *           are not reported).
+ *   setclass keys [object, class, by, number]  args [set]     (vetoable)
+ *           a script sets or clears an object's class (v5); a veto leaves it as it was.
  *   ctx: room, ego, mx/my (mouse in room coordinates)
  *
  * A pickup whose ownership change is vetoed also drops the inventory entry
@@ -104,6 +106,8 @@ public:
 	bool onGetClass(int obj, int cls, int &has);
 	/** A script reads bit variable @p bit; @p value may be answered. */
 	bool onGetBit(int bit, int &value);
+	/** A script sets (@p set) or clears class @p cls of @p obj; true when vetoed. */
+	bool onSetClass(int obj, int cls, bool set);
 	/**
 	 * Spots: objects the client lists as still to be found at their home spot.
 	 * Using such an object up (its owner leaving ego for anything but a room)
