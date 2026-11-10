@@ -81,8 +81,16 @@ void ScummEngine::runScript(int script, bool freezeResistant, bool recursive, in
 				       number, _roomResource);
 	} else {
 		scriptOffs = _localScriptOffsets[script - _numGlobalScripts];
-		if (scriptOffs == 0)
+		if (scriptOffs == 0) {
+			// Archipelago: items arrive in an order the game never planned for, and an
+			// item's script may then start its home room's script elsewhere. Skip it
+			// rather than stop the game.
+			if (_apBridge) {
+				warning("Archipelago: skipped local script %d, which is not in room %d", script, _roomResource);
+				return;
+			}
 			error("Local script %d is not in room %d", script, _roomResource);
+		}
 		if (_scriptOverrides.contains(_roomResource * 100000 + script))
 			scriptOffs = 0;
 		scriptType = WIO_LOCAL;
