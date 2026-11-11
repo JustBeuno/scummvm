@@ -566,6 +566,38 @@ bool ScummBridgeAdapter::performAction(const Common::String &op, const APBridge:
 		result = 1;
 		return true;
 	}
+	if (op == "actor") {
+		// Shows a scenery actor in the current room, as a room's entry script does with
+		// ActorOps(a, [Costume(c), IgnoreBoxes(), SetZClip(z), Scale(255, 255), Elevation(e)]),
+		// putActorInRoom(a, room) and putActor(a, x, y): args [actor, costume, x, y, elevation,
+		// zclip]. Costume 0 takes the actor out of the room. For props a game draws as actors
+		// (FOA's U-boat at Crete), never for ego or someone the story moves.
+		if (args.size() < 2 || args[0] < 1 || args[0] == ego || !_vm->isValidActor(args[0])) {
+			error = "actor needs [actor (not ego), costume, x, y, elevation, zclip]";
+			return false;
+		}
+		Actor *a = _vm->derefActor(args[0], "apbridge actor");
+		if (args[1] == 0) {
+			a->_room = 0;
+			a->putActor(0, 0, 0);
+			result = 1;
+			return true;
+		}
+		if (args.size() < 4 || args[1] < 0 || args[1] >= _vm->_numCostumes) {
+			error = "actor needs [actor, costume, x, y, elevation, zclip]";
+			return false;
+		}
+		a->setActorCostume(args[1]);
+		a->_ignoreBoxes = 1;
+		a->_forceClip = args.size() > 5 ? args[5] : 0;
+		a->_boxscale = 255;
+		a->setScale(255, 255);
+		a->setElevation(args.size() > 4 ? args[4] : 0);
+		a->_room = _vm->_currentRoom;
+		a->putActor(args[2], args[3]);
+		result = 1;
+		return true;
+	}
 	if (op == "clearColors") {
 		_colors.clear();
 		_patterns.clear();
