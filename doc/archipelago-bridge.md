@@ -172,7 +172,7 @@ Events:
 | `loadroom` | `[room, by, number]` | `[object, fromRoom]` (vetoable; v3 to v5). A script is about to change rooms with `loadRoom` (object 0) or `loadRoomWithEgo` (the entrance object); `by` and `number` as for `getowner`. A veto skips the opcode: the current room stays loaded, ego stays put and the script carries on with its next instruction. Use it to redirect an exit: veto it and run your own travel from the match. |
 | `sentence` | `[verb, objectA, objectB]` | (vetoable) A sentence (the player's verb on an object, or a script's `doSentence`) is about to reach the sentence script, also for objects that have no script for that verb. A veto drops it. An untouchable object (class 32) can't be clicked: clear the class with `setClass` first. |
 
-Context: `room`, `ego`, `mx`/`my` (the mouse in room coordinates, so a client can
+Context: `room`, `ego`, `ex`/`ey` (where ego stands, in room coordinates, when he is in the room), `mx`/`my` (the mouse in room coordinates, so a client can
 tell where a click landed), `screen` (the part of the screen the mouse is over: 0 the
 room, 2 the verbs and inventory; an object picked up keeps its number in the inventory,
 so this tells a click on the room's object from one on its inventory copy), `under` (the

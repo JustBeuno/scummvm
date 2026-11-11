@@ -65,7 +65,7 @@ class Actor;
  *           a sentence (the player's click, or a script's doSentence) is about
  *           to reach the sentence script, also for objects with no verb script.
  *           A veto drops it.
- *   ctx: room, ego, mx/my (mouse in room coordinates)
+ *   ctx: room, ego, ex/ey (where ego stands), mx/my (mouse in room coordinates)
  *
  * A pickup whose ownership change is vetoed also drops the inventory entry
  * the pickup had already created, so vetoed checks never fill the inventory.

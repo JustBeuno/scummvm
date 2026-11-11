@@ -64,8 +64,15 @@ bool ScummBridgeAdapter::canInterrupt() {
 
 void ScummBridgeAdapter::getContext(Common::HashMap<Common::String, int32> &ctx) {
 	ctx["room"] = _vm->_currentRoom;
-	if (_vm->VAR_EGO != 0xFF)
+	if (_vm->VAR_EGO != 0xFF) {
 		ctx["ego"] = _vm->VAR(_vm->VAR_EGO);
+		// Where ego stands, in room coordinates (when he is in this room)
+		Actor *a = _vm->derefActorSafe(_vm->VAR(_vm->VAR_EGO), "apGetContext");
+		if (a && a->isInCurrentRoom()) {
+			ctx["ex"] = a->getRealPos().x;
+			ctx["ey"] = a->getRealPos().y;
+		}
+	}
 	// Where the mouse is, in room coordinates: lets a client tell where a click landed
 	if (_vm->VAR_VIRT_MOUSE_X != 0xFF) {
 		ctx["mx"] = _vm->VAR(_vm->VAR_VIRT_MOUSE_X);
