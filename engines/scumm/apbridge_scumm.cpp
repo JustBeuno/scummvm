@@ -499,14 +499,18 @@ bool ScummBridgeAdapter::performAction(const Common::String &op, const APBridge:
 		// An actor (args[0], 0 or none = ego) says keys[0] over their head, in the game's
 		// font and their talk color, with the talk animation, as printEgo does. Returns 0
 		// without speaking while someone is talking, a cutscene runs, the player has no
-		// control or the actor is elsewhere, so the client can try again later.
+		// control or the actor is elsewhere, so the client can try again later. With
+		// args[1] = 1 it also speaks while the player has no control (in a conversation,
+		// while its choices wait), but still not over another line or in a cutscene.
 		if (keys.empty() || keys[0].empty()) {
 			error = "talk needs the text as its key";
 			return false;
 		}
 		int actor = (!args.empty() && args[0] > 0) ? args[0] : ego;
 		Actor *a = actor ? _vm->derefActorSafe(actor, "apbridge talk") : nullptr;
-		if (_vm->_haveMsg || _vm->vm.cutSceneStackPointer > 0 || _vm->_userPut <= 0 || !a || !a->isInCurrentRoom()) {
+		bool inTalk = args.size() > 1 && args[1] == 1;
+		if (_vm->_haveMsg || _vm->vm.cutSceneStackPointer > 0 || (_vm->_userPut <= 0 && !inTalk) || !a ||
+				!a->isInCurrentRoom()) {
 			result = 0;
 			return true;
 		}
