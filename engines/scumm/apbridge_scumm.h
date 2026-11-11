@@ -61,6 +61,10 @@ class Actor;
  *           the entrance object; 0 for loadRoom). A veto skips the opcode: the
  *           room stays loaded, ego stays where he is, and the script goes on with
  *           its next instruction. v3 to v5.
+ *   sentence keys [verb, objectA, objectB]  args []            (vetoable)
+ *           a sentence (the player's click, or a script's doSentence) is about
+ *           to reach the sentence script, also for objects with no verb script.
+ *           A veto drops it.
  *   ctx: room, ego, mx/my (mouse in room coordinates)
  *
  * A pickup whose ownership change is vetoed also drops the inventory entry
@@ -118,6 +122,7 @@ public:
 	/** A script sets (@p set) or clears class @p cls of @p obj; true when vetoed. */
 	bool onSetClass(int obj, int cls, bool set);
 	bool onLoadRoom(int room, int obj);
+	bool onSentence(int verb, int objA, int objB);
 	/**
 	 * Spots: objects the client lists as still to be found at their home spot.
 	 * Using such an object up (its owner leaving ego for anything but a room)

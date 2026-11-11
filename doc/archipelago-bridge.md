@@ -52,6 +52,7 @@ Newline-delimited JSON, one object per line, both directions.
 | `say`     | `text` | Show an on-screen message. |
 | `help`    | `text` | Set the Archipelago Help page (Markdown). Send it again whenever it changes. |
 | `travel`  | `title`, `options` | Set the travel menu: `options` is a list of `{id, text, enabled}` (`enabled` defaults to true). Send it again whenever it changes; an empty list turns travel off. |
+| `openTravel` | | Open the travel menu now, at the next frame (set it with `travel` first). It opens even while the player has no control, as during a departure scene. |
 | `ping`    | `req` | Liveness check. |
 
 Rules survive client disconnects, so suppressed pickups stay suppressed; they
@@ -169,6 +170,7 @@ Events:
 | `getvar` | `[variable, by, number]` | `[value]` (vetoable). A script read a variable; `by` and `number` as for `getowner`. Reads are frequent, so only variables a rule names as its first key (or a trace) are reported. |
 | `setclass` | `[object, class, by, number]` | `[set]` (vetoable; v5). A script set (1) or cleared (0) an object's class (bit 7 stripped); `by` and `number` as for `getowner`. A veto leaves the class as it was. |
 | `loadroom` | `[room, by, number]` | `[object, fromRoom]` (vetoable; v3 to v5). A script is about to change rooms with `loadRoom` (object 0) or `loadRoomWithEgo` (the entrance object); `by` and `number` as for `getowner`. A veto skips the opcode: the current room stays loaded, ego stays put and the script carries on with its next instruction. Use it to redirect an exit: veto it and run your own travel from the match. |
+| `sentence` | `[verb, objectA, objectB]` | (vetoable) A sentence (the player's verb on an object, or a script's `doSentence`) is about to reach the sentence script, also for objects that have no script for that verb. A veto drops it. An untouchable object (class 32) can't be clicked: clear the class with `setClass` first. |
 
 Context: `room`, `ego`, `mx`/`my` (the mouse in room coordinates, so a client can
 tell where a click landed), `screen` (the part of the screen the mouse is over: 0 the

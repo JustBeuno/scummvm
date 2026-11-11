@@ -341,6 +341,17 @@ bool ScummBridgeAdapter::onWriteVar(unsigned int var, int value) {
 	return b->notify(kind, keys, args).veto;
 }
 
+bool ScummBridgeAdapter::onSentence(int verb, int objA, int objB) {
+	APBridge::Bridge *b = bridge();
+	if (!b || !b->wants("sentence"))
+		return false;
+	APBridge::Keys keys;
+	keys.push_back(num(verb));
+	keys.push_back(num(objA));
+	keys.push_back(num(objB));
+	return b->notify("sentence", keys, APBridge::Args()).veto;
+}
+
 bool ScummBridgeAdapter::onLoadRoom(int room, int obj) {
 	APBridge::Bridge *b = bridge();
 	if (!b || _vm->_currentScript == 0xFF || !b->wants("loadroom"))

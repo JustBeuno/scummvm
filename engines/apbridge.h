@@ -206,6 +206,8 @@ private:
 	Adapter *_adapter;
 	Common::String _gameId, _extra;
 	bool _inAction;
+	bool _travelRequested; ///< the client sent openTravel
+	bool _travelForced;    ///< opening on the client's request: no canInterrupt() check
 	Common::Array<Rule> _rules;
 	Common::HashMap<Common::String, bool> _watchedKinds;
 	Common::HashMap<Common::String, bool> _tracedKinds;

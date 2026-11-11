@@ -22,6 +22,7 @@
 #define FORBIDDEN_SYMBOL_EXCEPTION_getenv
 
 #include "engines/apbridge.h"
+#include "engines/engine.h"
 
 #include "common/config-manager.h"
 #include "common/debug.h"
@@ -97,7 +98,7 @@ Bridge *Bridge::startGame() {
 
 Bridge::Bridge(const Common::String &endpoint)
 	: _endpoint(endpoint), _socket(nullptr), _connected(false), _nextConnectTime(0),
-	  _adapter(nullptr), _inAction(false) {
+	  _adapter(nullptr), _inAction(false), _travelRequested(false), _travelForced(false) {
 }
 
 Bridge::~Bridge() {
@@ -213,6 +214,14 @@ void Bridge::tick() {
 			handleLine(line);
 		if (!_connected)
 			return;
+	}
+	if (_travelRequested) {
+		_travelRequested = false;
+		if (g_engine && !g_engine->isPaused()) {
+			_travelForced = true;
+			g_engine->openArchipelagoTravelDialog();
+			_travelForced = false;
+		}
 	}
 #endif
 }
@@ -456,6 +465,10 @@ void Bridge::handleLine(const Common::String &line) {
 					_travelOptions.push_back(opt);
 			}
 		}
+	} else if (cmd == "openTravel") {
+		// The client asks for the travel menu itself (a departure the game
+		// started); it opens at the end of this tick, outside the message loop.
+		_travelRequested = true;
 	} else if (cmd == "ping") {
 		// just reply
 	} else {
@@ -628,7 +641,7 @@ GUI::Dialog *Bridge::createTravelDialog(Common::String &reason) {
 		reason = "No travel destinations are available";
 		return nullptr;
 	}
-	if (!_adapter->canInterrupt()) {
+	if (!_travelForced && !_adapter->canInterrupt()) {
 		reason = "You can't travel right now";
 		return nullptr;
 	}

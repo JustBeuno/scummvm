@@ -1191,6 +1191,10 @@ void ScummEngine::checkAndRunSentenceScript() {
 		if (st.preposition && st.objectB == st.objectA)
 			return;
 
+	// Archipelago: a rule may drop the sentence before the sentence script sees it
+	if (_apBridge && _apBridge->onSentence(st.verb, st.objectA, st.objectB))
+		return;
+
 	if (_game.version <= 2) {
 		VAR(VAR_ACTIVE_VERB) = st.verb;
 		VAR(VAR_ACTIVE_OBJECT1) = st.objectA;
