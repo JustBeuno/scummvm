@@ -56,6 +56,11 @@ class Actor;
  *           (or a trace), as reads are frequent.
  *   setclass keys [object, class, by, number]  args [set]     (vetoable)
  *           a script sets or clears an object's class (v5); a veto leaves it as it was.
+ *   loadroom keys [room, by, number]  args [object, fromRoom]  (vetoable)
+ *           a script is about to change rooms (loadRoom, or loadRoomWithEgo with
+ *           the entrance object; 0 for loadRoom). A veto skips the opcode: the
+ *           room stays loaded, ego stays where he is, and the script goes on with
+ *           its next instruction. v3 to v5.
  *   ctx: room, ego, mx/my (mouse in room coordinates)
  *
  * A pickup whose ownership change is vetoed also drops the inventory entry
@@ -112,6 +117,7 @@ public:
 	bool onGetVar(int var, int &value);
 	/** A script sets (@p set) or clears class @p cls of @p obj; true when vetoed. */
 	bool onSetClass(int obj, int cls, bool set);
+	bool onLoadRoom(int room, int obj);
 	/**
 	 * Spots: objects the client lists as still to be found at their home spot.
 	 * Using such an object up (its owner leaving ego for anything but a room)

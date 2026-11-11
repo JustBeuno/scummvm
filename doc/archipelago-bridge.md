@@ -168,6 +168,7 @@ Events:
 | `getbit` | `[bit, by, number]` | `[value]` (vetoable; v5 and later). A script read a bit variable; `by` and `number` as for `getowner`. Reads outside scripts (bridge actions) are not reported. |
 | `getvar` | `[variable, by, number]` | `[value]` (vetoable). A script read a variable; `by` and `number` as for `getowner`. Reads are frequent, so only variables a rule names as its first key (or a trace) are reported. |
 | `setclass` | `[object, class, by, number]` | `[set]` (vetoable; v5). A script set (1) or cleared (0) an object's class (bit 7 stripped); `by` and `number` as for `getowner`. A veto leaves the class as it was. |
+| `loadroom` | `[room, by, number]` | `[object, fromRoom]` (vetoable; v3 to v5). A script is about to change rooms with `loadRoom` (object 0) or `loadRoomWithEgo` (the entrance object); `by` and `number` as for `getowner`. A veto skips the opcode: the current room stays loaded, ego stays put and the script carries on with its next instruction. Use it to redirect an exit: veto it and run your own travel from the match. |
 
 Context: `room`, `ego`, `mx`/`my` (the mouse in room coordinates, so a client can
 tell where a click landed), `screen` (the part of the screen the mouse is over: 0 the

@@ -1823,6 +1823,10 @@ void ScummEngine_v5::o5_loadRoom() {
 
 	room = getVarOrDirectByte(PARAM_1);
 
+	// Archipelago: a rule may keep the game from leaving this room
+	if (_apBridge && _apBridge->onLoadRoom(room, 0))
+		return;
+
 	// WORKAROUND bug #12420 (also occurs in original) Broken window and coat missing
 	// This happens when you skip the cutscenes in the beginning, in particular
 	// the one where Indy enters the office for the first time. If object 23 (National
@@ -1870,6 +1874,14 @@ void ScummEngine_v5::o5_loadRoomWithEgo() {
 
 	obj = getVarOrDirectWord(PARAM_1);
 	room = getVarOrDirectByte(PARAM_2);
+
+	// Archipelago: a rule may keep the game from leaving this room (the
+	// walk-to position still has to be read past)
+	if (_apBridge && _apBridge->onLoadRoom(room, obj)) {
+		fetchScriptWordSigned();
+		fetchScriptWordSigned();
+		return;
+	}
 
 	a = derefActor(VAR(VAR_EGO), "o5_loadRoomWithEgo");
 

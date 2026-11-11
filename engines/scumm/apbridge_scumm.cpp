@@ -341,6 +341,23 @@ bool ScummBridgeAdapter::onWriteVar(unsigned int var, int value) {
 	return b->notify(kind, keys, args).veto;
 }
 
+bool ScummBridgeAdapter::onLoadRoom(int room, int obj) {
+	APBridge::Bridge *b = bridge();
+	if (!b || _vm->_currentScript == 0xFF || !b->wants("loadroom"))
+		return false;
+	const char *by;
+	int number;
+	scriptContext(by, number);
+	APBridge::Keys keys;
+	keys.push_back(num(room));
+	keys.push_back(by);
+	keys.push_back(num(number));
+	APBridge::Args args;
+	args.push_back(obj);
+	args.push_back(_vm->_currentRoom);
+	return b->notify("loadroom", keys, args).veto;
+}
+
 void ScummBridgeAdapter::onRoom(int room) {
 	APBridge::Bridge *b = bridge();
 	if (!b || !b->wants("room"))
